@@ -1,0 +1,6 @@
+Create a main folder called genie.
+Inside the genie folder, add the frontend files I uploaded into a folder named frontend.
+On the backend side, create a database.
+An API file called mealAPI.js is already created inside the services folder. This is where the frontend connects to the database. Make sure any API setup or changes are done there.
+Note: The code will not run if the backend is not up and running.
+You’ll need to use a free meal database or connect to one. Creating a new meal database from scratch is unnecessary and will waste time.
