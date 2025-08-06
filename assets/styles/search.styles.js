@@ -39,6 +39,12 @@ export const searchStyles = StyleSheet.create({
   clearButton: {
     padding: 4,
   },
+
+  cameraButton: {
+    marginLeft: 8,
+    padding: 4,
+  },
+
   quickFilters: {
     marginTop: 20,
   },
