@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, FlatList } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  Alert,
+} from "react-native";
 import { MealAPI } from "../../services/mealAPI";
 import { useDebounce } from "../../hooks/useDebounce";
 import { searchStyles } from "../../assets/styles/search.styles";
@@ -8,24 +15,53 @@ import { Ionicons } from "@expo/vector-icons";
 import RecipeCard from "../../components/RecipeCard";
 import LoadingSpinner from "../../components/LoadingSpinner";
 
+import * as ImagePicker from "expo-image-picker";
+import { Camera } from "expo-camera";
+
 const SearchScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [hasCameraPermission, setHasCameraPermission] = useState(null);
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
+  useEffect(() => {
+    (async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      setHasCameraPermission(status === "granted");
+    })();
+  }, []);
+
+  const openCamera = async () => {
+    if (hasCameraPermission === false) {
+      Alert.alert(
+        "Permission Denied",
+        "Camera access is required to use this feature."
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.8,
+    });
+
+    if (!result.cancelled) {
+      console.log("Captured image URI:", result.uri);
+      // You could add logic here to preview, upload, or process the image
+    }
+  };
+
   const performSearch = async (query) => {
-    // if no search query
     if (!query.trim()) {
       const randomMeals = await MealAPI.getRandomMeals(12);
       return randomMeals
         .map((meal) => MealAPI.transformMealData(meal))
         .filter((meal) => meal !== null);
     }
-
-    // search by name first, then by ingredient if no results
 
     const nameResults = await MealAPI.searchMealsByName(query);
     let results = nameResults;
@@ -97,10 +133,19 @@ const SearchScreen = () => {
             returnKeyType="search"
           />
           {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery("")} style={searchStyles.clearButton}>
+            <TouchableOpacity
+              onPress={() => setSearchQuery("")}
+              style={searchStyles.clearButton}
+            >
               <Ionicons name="close-circle" size={20} color={COLORS.textLight} />
             </TouchableOpacity>
           )}
+          <TouchableOpacity
+            onPress={openCamera}
+            style={searchStyles.cameraButton}
+          >
+            <Ionicons name="camera" size={20} color={COLORS.textLight} />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -132,6 +177,7 @@ const SearchScreen = () => {
     </View>
   );
 };
+
 export default SearchScreen;
 
 function NoResultsFound() {
